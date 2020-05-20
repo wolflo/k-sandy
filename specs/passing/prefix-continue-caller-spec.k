@@ -1,4 +1,4 @@
-requires "../../prefix.k"
+requires "../prefix.k"
 
 module PREFIX-CONTINUE-CALLER-SPEC
     imports PREFIX
@@ -10,13 +10,13 @@ module PREFIX-CONTINUE-CALLER-SPEC
         <localMem> .Map </localMem>
         <program> prefix </program>
         <jumpDests> #computeValidJumpDests(prefix) </jumpDests>
-        <pc> 0  => 47 </pc>
+        <pc> 0 => #sizeByteArray(prefix) </pc>
         <wordStack> .WordStack </wordStack>
-        <gas> VGAS => VGAS -Int 56 </gas>
+        <gas> VGAS => VGAS -Int 57 </gas>
         <callData> _ </callData>
         <caller> CALLER_ID </caller>
     requires
         notBool CALLER_ID ==Int killer
-        andBool VGAS >=Int 56
+        andBool VGAS >=Int 57
 
 endmodule
