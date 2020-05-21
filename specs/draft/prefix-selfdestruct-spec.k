@@ -2,7 +2,6 @@ requires "../prefix.k"
 
 // case ACCTTO == ACCT - not a possible state with sandy, but necessary to fully specify prefix
 // case ACCTTO not in active accounts (just a gas fee thing?)
-// case ACCT in selfdestructs
 
 module PREFIX-SELFDESTRUCT-SPEC
     imports PREFIX
@@ -12,51 +11,48 @@ module PREFIX-SELFDESTRUCT-SPEC
         <schedule> ISTANBUL </schedule>
         <statusCode> EVMC_SUCCESS </statusCode>
         <output> .WordStack </output>
-        <touchedAccounts>
-            .Set
-        =>
-            SetItem(9)
-            SetItem(killer)
-        </touchedAccounts>
+        <touchedAccounts>... (.Set => SetItem(ACCT) SetItem(killer)) </touchedAccounts>
         <program> prefix </program>
         <jumpDests> #computeValidJumpDests(prefix) </jumpDests>
-        <id> 9 </id>
+        <id> ACCT </id>
         <caller> killer </caller>
-        <callData> killFunctionSig  </callData>
+        <callData> killFunctionSig </callData>
         <callValue> _ </callValue>
         <wordStack> .WordStack </wordStack>
         <pc> 0 => #sizeByteArray(prefix) -Int 2 </pc>
         <endPC> #sizeByteArray(prefix) -Int 2 </endPC>
-        <gas> 10000 => ?_ </gas>
+        <gas> VGAS => ?_ </gas>
 
         <static> false </static>
         <callDepth> _ </callDepth>
-        <selfDestruct> .Set => SetItem(9) </selfDestruct>
-        <refund> 0 => 24000 </refund>
+        <selfDestruct> SDS (.Set => SetItem(ACCT)) </selfDestruct>
+        <refund> RF => #if ACCT in SDS #then RF #else chop( RF +Int 24000 ) #fi </refund>
         <memoryUsed> 0 </memoryUsed>
         <localMem> .Map </localMem>
 
-        <activeAccounts>
-            SetItem(9)
-            SetItem(killer)
-        </activeAccounts>
+        <activeAccounts> ACTIVE_ACCTS </activeAccounts> // Cnew
         <accounts>
           <account>
-            <acctID> 9 </acctID>
-            <balance> 0 </balance>
-            <code> prefix </code>
-            <storage> .Map </storage>
-            <origStorage> .Map </origStorage>
-            <nonce> 0 </nonce>
+            <acctID> ACCT </acctID>
+            <balance> BAL_FROM => 0 </balance>
+            <code> _:WordStack </code>
+            <storage> _ </storage>
+            <origStorage> _ </origStorage>
+            <nonce> _ </nonce>
           </account>
           <account>
             <acctID> killer </acctID>
-            <balance> 0 </balance>
-            <code> .WordStack </code>
-            <storage> .Map </storage>
-            <origStorage> .Map </origStorage>
-            <nonce> 0 </nonce>
+            <balance> BAL_TO => chop( BAL_TO +Int BAL_FROM ) </balance>
+            <code> _:WordStack </code>
+            <storage> _ </storage>
+            <origStorage> _ </origStorage>
+            <nonce> _ </nonce>
           </account>
+          ...
         </accounts>
+    requires
+        ACCT =/=Int killer
+        andBool VGAS >Int 100000
+        andBool killer in ACTIVE_ACCTS  // TODO
 
 endmodule
